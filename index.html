@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>pokemon</title>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+        }
+
+        .wrap {
+            max-width: 900px;
+            min-height: 100vh;
+            background-color: rgb(238, 239, 240);
+            margin: 0 auto;
+            padding: 30px 10px;
+            position: relative;
+
+        }
+
+        .search {
+
+            display: flex;
+            /* width: 80%; */
+            margin: 50px auto;
+            box-shadow: 0 0 10px -5px gray;
+        }
+
+        .search input {
+            width: 100%;
+            padding: 8px 30px;
+            font-size: 20px;
+            background-color: rgb(255, 255, 255);
+            border: 0;
+            outline: 0;
+
+            /* border-radius: 50px; */
+        }
+
+        .search button {
+            margin-left: 1px;
+            padding: 5px 10px;
+            font-size: 18px;
+            background-color: lightsalmon;
+            color: white;
+            border: 0;
+            outline: 0;
+        }
+
+        .container {
+            width: 100%;
+            margin-top: 30px;
+            display: none;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            padding: 50px;
+        }
+
+        .image {
+            text-align: center;
+        }
+
+        .detail div {
+            margin: 15px 0;
+            padding-left: 20px;
+            text-transform: capitalize;
+        }
+
+        .collections {
+            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(70px, 160px));
+            place-content: center;
+            gap: 20px;
+        }
+
+        .item {
+            padding: 5px;
+            border: 1px solid gray;
+            text-align: center;
+            box-shadow: 0 0 15px -8px rgba(0, 0, 0, 0.665);
+            text-transform: capitalize;
+            cursor: pointer;
+            transition: .3s;
+
+        }
+
+        .item:hover {
+            scale: 1.05;
+        }
+
+
+        .item img {
+            display: block;
+            width: 100%;
+            height: 200px;
+        }
+
+        #back {
+            position: absolute;
+            top: 84px;
+            left: 60px;
+            cursor: pointer;
+            border-radius: 50%;
+            padding: 4px;
+            rotate: 90deg;
+            font-weight: bold;
+            height: 30px;
+            color: whitesmoke;
+            border: 0;
+            outline: 0;
+            background-color: lightsalmon;
+            color: white;
+            font: 18px;
+            box-shadow: 0 0 5px -2px gray;
+            width: 30px;
+            display: none;
+        }
+
+        .loader-wrap {
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: rgba(248, 248, 248, 0.971);
+            height: 100vh;
+            width: 100%;
+            display: grid;
+            place-content: center;
+        }
+
+
+        .loader-bar {
+            width: 40px;
+            height: 40px;
+            border: 5px solid lightseagreen;
+            border-bottom-color: transparent;
+            display: inline-block;
+            border-radius: 50%;
+            animation: loader 3s infinite linear;
+        }
+
+        @keyframes loader {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="wrap">
+        <div class="search">
+            <input type="text" id="search-term" placeholder="Search your favourite pokemon">
+            <button id="search-btn">Search</button>
+        </div>
+        <button id="back">V</button>
+
+        <div class="container">
+            <div class="image">
+                <!-- <h2>Image</h2> -->
+                <img id="img" width="80%">
+            </div>
+            <div class="detail">
+                <div>
+                    <h2>Details</h2>
+                    <div id="name"></div>
+                    <div id="height"></div>
+                    <div id="weight"></div>
+                </div>
+                <br>
+                <div>
+                    <h2>Type and Ability</h2>
+                    <div id="type"></div>
+                    <div id="ability"></div>
+                </div>
+            </div>
+
+        </div>
+        <div class="collections">
+
+        </div>
+
+    </div>
+
+    <div class="loader-wrap">
+        <div class="loader">
+            <span class="loader-bar"></span>
+        </div>
+    </div>
+
+    <script>
+
+
+        const collection = async (items) => {
+
+            let output = '';
+            for (let i = 1; i <= items; i++) {
+
+                try {
+
+                    let url = "https://pokeapi.co/api/v2/pokemon/" + i + "/";
+                    let promise = await fetch(url);
+
+                    if (!promise.ok) {
+                        throw new Error(promise.statusText);
+                    }
+
+                    let data = await promise.json();
+
+                    document.querySelector('.loader-wrap').style.display = 'none';
+                    let name = data.name;
+                    let id = data.id;
+                    let image = data.sprites.other.dream_world.front_default;
+                    output = `<div class="item" onclick = "pokemon(${id})">
+                      <img src="${image}" alt="${name}" loading="lazy">
+                      <b>#${id} ${name}</b>
+                      </div>`;
+                    document.querySelector('.collections').innerHTML += output;
+
+                } catch (error) {
+                    console.log(error)
+                }
+            }
+
+        }
+        // collection(148);
+        collection(248);
+
+        async function pokemon(id) {
+            document.querySelector('.loader-wrap').style.display = 'grid';
+            document.querySelector('#back').style.display = 'block';
+
+            let url = "https://pokeapi.co/api/v2/pokemon/" + id + "/";
+
+            let promise = fetch(url);
+
+            await promise.then((response) => {
+
+                return response.json();
+            }).then((data) => {
+                let name = data.name;
+                let image = data.sprites.other.dream_world.front_default;
+                let height = data.height;
+                let weight = data.weight;
+                let ability = data.abilities[1].ability.name;
+                let category = data.types[0].type.name;
+
+                console.log(data);
+                document.querySelector('#img').setAttribute('src', image);
+                document.querySelector('#name').innerHTML = `<b>Name: </b> ${name}`;
+                document.querySelector('#height').innerHTML = `<b>Height: </b> ${height}`;
+                document.querySelector('#weight').innerHTML = `<b>Weight: </b> ${weight}`;
+                document.querySelector('#type').innerHTML = `<b>Type: </b> ${category}`;
+                document.querySelector('#ability').innerHTML = `<b>Ability: </b> ${ability}`;
+                setTimeout(() => {
+                    document.querySelector('.loader-wrap').style.display = 'none';
+                }, 500);
+            })
+            document.querySelector('.collections').style.display = 'none';
+            document.querySelector('.container').style.display = 'grid';
+
+        }
+
+        document.querySelector('#search-btn ').addEventListener('click', async () => {
+            document.querySelector('#back').style.display = 'block';
+            document.querySelector('.loader-wrap').style.display = 'grid';
+
+            let searchTerm = document.querySelector('#search-term').value.trim().toLowerCase();
+            if (searchTerm != null) {
+
+                let url = "https://pokeapi.co/api/v2/pokemon/" + searchTerm + "/";
+
+                let promise = fetch(url);
+
+
+                await promise.then((response) => {
+
+                    return response.json();
+                }).then((data) => {
+                    let name = data.name;
+                    let image = data.sprites.other.dream_world.front_default;
+                    let height = data.height;
+                    let weight = data.weight;
+                    let ability = data.abilities[1].ability.name;
+                    let category = data.types[0].type.name;
+
+                    console.log(data);
+                    document.querySelector('#img').setAttribute('src', image);
+                    document.querySelector('#name').innerHTML = `<b>Name: </b> ${name}`;
+                    document.querySelector('#height').innerHTML = `<b>Height: </b> ${height}`;
+                    document.querySelector('#weight').innerHTML = `<b>Weight: </b> ${weight}`;
+                    document.querySelector('#type').innerHTML = `<b>Type: </b> ${category}`;
+                    document.querySelector('#ability').innerHTML = `<b>Ability: </b> ${ability}`;
+
+                    setTimeout(() => {
+                        document.querySelector('.loader-wrap').style.display = 'none';
+                    }, 500);
+                })
+                document.querySelector('.collections').style.display = 'none';
+                document.querySelector('.container').style.display = 'grid';
+            }
+        });
+
+
+        document.querySelector('#back').addEventListener('click', () => {
+            document.querySelector('.loader-wrap').style.display = 'grid';
+            document.querySelector('.collections').style.display = 'grid';
+            document.querySelector('.container').style.display = 'none';
+            document.querySelector('#back').style.display = 'none';
+            setTimeout(() => {
+                document.querySelector('.loader-wrap').style.display = 'none';
+            }, 500);
+        })
+
+        // document.querySelector('.loader-wrap').style.display = 'none';
+
+
+    </script>
+</body>
+
+</html>
